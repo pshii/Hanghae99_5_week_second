@@ -1,11 +1,10 @@
 import React from 'react';
-import { InputGroup, FormControl } from 'react-bootstrap';
 import { Button } from 'react-bootstrap';
 import styledComponents from 'styled-components';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {auth} from './shared/firebase'
 import {collection, addDoc} from 'firebase/firestore';
-import { db ,storage} from './shared/firebase';
+import { db } from './shared/firebase';
 import { Alert } from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useDispatch} from 'react-redux'
@@ -46,9 +45,8 @@ const SignUp = () => {
 
         const user_doc = await addDoc(collection(db, "users"),{
             user_id:user.user.email, 
-            nick: nick_ref.current.value,       // name_ref.current?.value  네임이 선택요소라면 ..
+            nick: nick_ref.current.value,     
           });
-        //   console.log(user_doc.id) 
         
 
         dispatch(saveUser({ user_id:user.user.email, nick:nick_ref.current.value }))
@@ -66,10 +64,10 @@ const SignUp = () => {
             <label />닉네임
             <Input ref={nick_ref}placeholder='닉네임를 입력하세요'/>
             <label />비밀번호
-            <Input ref={pw1_ref}placeholder='비밀번호를 입력하세요'/>
+            <Input ref={pw1_ref} type="password" placeholder='비밀번호를 입력하세요'/>
             <Alert severity="error">8~10 영문,숫자 조합으로 입력하세요</Alert>
             <label />비밀번호 확인
-            <Input ref={pw2_ref}placeholder='비밀번호를 다시 입력하세요'/>
+            <Input ref={pw2_ref} type="password" placeholder='비밀번호를 다시 입력하세요'/>
             
             <Button variant="secondary" style={{width:"100%", marginTop:"20px"}} onClick={sign_Up} >회원가입하기</Button>{' '}
         </div>

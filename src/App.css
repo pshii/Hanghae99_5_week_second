@@ -1,6 +1,7 @@
 * {
   font-family: 'EarlyFontDiary';
   font-weight: bold;
+  font-size: 1rem;
 }
 .text-right {
   flex-direction: row-reverse;
@@ -18,21 +19,10 @@
   transition: opacity 0.5s;
 }
 
-/* .top > .content-image {
-  width: 100%;
-  border  :2px solid red;
-  display: block;
-}
-.top > .title {
-  height: inherit;
-} */ 
-
-
 
 
 .text-box {
   border:1px solid red;
-  /* margin-left:-50px; */
 }
 /* ---desktop(1024px~)--- */
 @media screen and (min-width: 1024px) {
@@ -43,16 +33,17 @@
  
  }
   /* ---mobile(320px~480px)--- */
-@media screen and (max-width: 768px) {   /* 태블릿사이즈보다 작아지면 바로 적용되도록 */
-  /* .content-box{
-    display: block;
+@media screen and (max-width: 768px) and ( min-width: 412px ) {   /* 태블릿사이즈보다 작아지면 바로 적용되도록 */
+  *{
+    font-size: 0.9rem;
   }
-  .content-box > image{ 
-    max-width: 100%;
-    
-  } */
 }
 
+@media screen and ( max-width: 412px ) { 
+  *{
+    font-size: 0.8rem;
+  }
+}
 
 @font-face {
   font-family: 'EarlyFontDiary';

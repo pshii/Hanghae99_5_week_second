@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getDocs,collection } from "firebase/firestore";
-import { db } from "../../shared/firebase";
+
 const CommentSlice = createSlice({      // = useState
     name : 'comment',   // state 이름
     initialState : [],

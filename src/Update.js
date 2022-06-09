@@ -1,19 +1,15 @@
-import React from 'react';
+import React,{ useState } from 'react';
 import styledComponents from 'styled-components';
 import { Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react';
-import {  useDispatch} from 'react-redux'
-import { saveMegazine } from './redux/Slice/Megazine';
+import { useNavigate, useParams } from 'react-router-dom'
 import moment from 'moment';
-import { db,storage,auth } from './shared/firebase';
-import { ref,uploadBytes,getDownloadURL } from 'firebase/storage';
-import {  addDoc,collection,} from "firebase/firestore";
+import { db,storage } from './shared/firebase';
+import {ref,uploadBytes,getDownloadURL} from 'firebase/storage';
+import { doc,getDoc, updateDoc} from "firebase/firestore";
 
-const Write = (props) => {
-   
-    const dispatch = useDispatch(); 
+const Update = (props) => {
     const navigate = useNavigate();
+    const {id} = useParams();
     const imageInput = React.useRef(null);
     const [fileImage, setFileImage] = useState('');
     const [fileName, setFileName] = useState('');
@@ -21,10 +17,20 @@ const Write = (props) => {
     const [x,setX] = useState('');
     const contentRef = React.useRef(null);
     const [btnState, setBtnState] = useState(true);
+    const [megazine, setMegazine] = useState({})
+
+    React.useEffect(()=>{
+        loadOneMegazineFB()
+    },[])
+    const loadOneMegazineFB = async ()=>{
+        const docRef = doc(db, "megazine", id);
+        const megazine = (await getDoc(docRef)).data();
+
+        setMegazine({ ...megazine, id: docRef.id })
+    }
 
     const handleInput = () => {
-        imageInput.current.value && contentRef.current.value 
-        ? setBtnState(false) : setBtnState(true);
+        contentRef.current.value ? setBtnState(false) : setBtnState(true);
     }
 
     const clickImgUpload = () =>{
@@ -51,44 +57,45 @@ const Write = (props) => {
         setX(e.target.value)
     }
 
-    const saveMegazineFB = async () => {
+    const updateMegazineFB = async () => {
         const nowTime = moment().format('YYYY-MM-DD HH:mm:ss');
 
-        const file = imageInput.current.files[0];
+        let file_url = '';
+        if (imageInput.current.value ){
+            const file = imageInput?.current.files[0];
+            const uploaded_file = await uploadBytes(
+                ref(storage, `images/${file.name}`),    // 파일이름
+                file                                    //  파일
+                );                                      // ref로 다운로드url에 씀
+    
+            file_url = await getDownloadURL(uploaded_file.ref);
+        }
+
         
-        const uploaded_file = await uploadBytes(
-            ref(storage, `images/${file.name}`),    // 파일이름
-            file                                    //  파일
-            );                                      // ref로 다운로드url에 씀
+        const docRef = doc(db,  "megazine", id)
+        
+        console.log(megazine)
 
-        const file_url = await getDownloadURL(uploaded_file.ref);    
-
-        const docRef = await addDoc(collection(db, "megazine"), { 
+        const _megazine = {
             content: contentRef.current.value,
             nick : props.nick,
             time : nowTime,
-            img_url : file_url,
-            liked: 0,
-            position : x,
-            email: auth.currentUser.email,
-        } )
-        const megazine = {
-            content: contentRef.current.value,
-            nick : props.nick,
-            time : nowTime,
-            img_url : file_url,
+            img_url : file_url  ? file_url : megazine.img_url,
             liked: 0,
             position : x,
             id: docRef.id,
-            email: auth.currentUser.email,
         } 
-        dispatch(saveMegazine(megazine));
+
+        await updateDoc(docRef, _megazine) 
+       
+       // 수정페이지에서 기능 더 안할꺼니 리덕스는 생략
+        // dispatch(updateMegazine(_megazine));
         navigate('/');
 
     }
     return (
         <div style={{ marginTop: "50px", textAlign: "left" }}>
-            <h1>게시글 작성</h1>
+            <h1>게시글 수정</h1>
             <Input type="file" ref={imageInput} 
             onChange={()=>{
                 inputFileText(); 
@@ -107,8 +114,8 @@ const Write = (props) => {
             />
                 오른쪽에 이미지 왼쪽에 텍스트</label>
             <ContentBox className=''>
-                <div className='title' style={{ margin: "auto" }} ><span>{title}</span></div>
-                {fileImage? <img src={fileImage}></img>: null }
+                <div className='title' style={{ margin: "auto" }} ><span>{title? title :megazine.content}</span></div>
+                {fileImage? <img src={fileImage}></img>: <img src={megazine.img_url}/> }
             </ContentBox>
             
             <label>
@@ -118,8 +125,8 @@ const Write = (props) => {
             />
                 왼쪽에 이미지 오른쪽에 텍스트</label>
             <ContentBox className='text-right'>
-                <div className='title' style={{ margin: "auto" }} ><span>{title}</span></div>
-                {fileImage? <img src={fileImage}></img>: null }
+                <div className='title' style={{ margin: "auto" }} ><span>{title? title :megazine.content}</span></div>
+                {fileImage? <img src={fileImage}></img>: <img src={megazine.img_url}/> }
             </ContentBox>
 
             <label>
@@ -129,21 +136,21 @@ const Write = (props) => {
             />
                 하단에 이미지 상단에 텍스트</label>
             <ContentBox className='text-top'>
-                <div className='title' style={{ margin: "auto" }} ><span>{title}</span></div>
-                {fileImage? <img style={{width:"100%"}} src={fileImage}></img>: null }
+                <div className='title' style={{ margin: "auto" }} ><span>{title? title :megazine.content}</span></div>
+                {fileImage? <img style={{width:"100%"}} src={fileImage}></img>: <img src={megazine.img_url} style={{width:"100%"}}/> }
             </ContentBox>
             
             <p style={{marginTop:"30px"}}>게시물 내용</p>
-            <TextArea ref={contentRef} 
+            <TextArea ref={contentRef}  defaultValue={megazine.content}
             onChange={(e)=>{
                 inputText(e);
                 handleInput();
             }}/>
             <Button variant="secondary" style={{width:"100%", marginTop:"20px"}}
-            onClick = {()=>{saveMegazineFB()}}
+            onClick = {()=>{updateMegazineFB()}}
             disabled={btnState}
 
-            >게시글작성</Button>{' '}
+            >게시글수정</Button>{' '}
         </div>
     );
 }
@@ -188,4 +195,4 @@ const TextArea = styledComponents.textarea`
         border: 2px solid rgba(108,117,125,0.8);
     }
 `;
-export default Write;
+export default Update;

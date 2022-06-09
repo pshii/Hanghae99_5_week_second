@@ -10,6 +10,7 @@ import Login from './Login';
 import SignUp from './SignUp';
 import Detail from './Detail';
 import Write from './Write';
+import Update from './Update';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from './shared/firebase';
 import { useSelector, useDispatch } from 'react-redux';
@@ -22,8 +23,6 @@ function App() {
   const user = useSelector(state => state);
   const navigate = useNavigate();
   const [is_login, setIs_login] = React.useState(false);
-  // console.log(auth.currentUser)
-  // const [user_id, setUser_id] = useState(null);
   const [user_nick, setUser_nick] = useState(user.nick);
 
 
@@ -32,18 +31,14 @@ function App() {
       setIs_login(true)
       const user_docs = await getDocs(
         query(collection(db, "users"), where("user_id", "==", auth.currentUser.email))
-      );  // 여러 데이터= 배열을 가져옴
+      );  
       let _user = [];
 
       user_docs.forEach(u => {
-        // setUser_id(u.data().user_id)
-        setUser_nick(u.data().nick)      // let nick 선언해서 가능 ?
+        setUser_nick(u.data().nick)      
         _user.push({ user_id: u.data().user_id, nick: u.data().nick })
       })
       dispatch(saveUser(_user))
-
-
-      // navigate('/')
     }
     else
       setIs_login(false)
@@ -82,6 +77,7 @@ function App() {
           <Route path='/' element={<Main />} />
           <Route path='/login' element={<Login />} />
           <Route path='/signup' element={<SignUp />} />
+          <Route path='/update/:id' element={<Update nick={user_nick}/>} />
           <Route path='/write' element={<Write nick={user_nick} />} />
           <Route path='/detail/:id' element={<Detail nick={user_nick} />} />
         </Routes>
@@ -93,7 +89,7 @@ function App() {
 
 const NavBar = styledComponents.div`
   width : 100%;
-  background-color : rgb(0,0,0);
+  background-color : rgb(50,50,50);
   height : 80px;
   display : flex;
   align-items: center;
